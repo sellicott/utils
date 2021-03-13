@@ -6,7 +6,7 @@
  *
  * Written in 2011 by Drew Hess <dhess-src@bothan.net>.
  * Modified in 2021 by Sam Ellicott <sellicott@cedarville.edu>
- * 
+ *
  * Original code licensed under the CC0 Public Domain Dedication
  * <http://creativecommons.org/publicdomain/zero/1.0/>,
  * Modified code is licensed under the MIT licence
@@ -36,67 +36,56 @@ typedef struct ringbuf_t ringbuf_t;
  * Returns the new ring buffer object, or 0 if there's not enough
  * memory to fulfill the request for the given capacity.
  */
-ringbuf_t*
-ringbuf_new(size_t capacity);
+ringbuf_t *ringbuf_new( size_t capacity );
 
 /*
- * The capacity of the internal buffer, in bytes. 
- * 
+ * The capacity of the internal buffer, in bytes.
+ *
  * For the usable capacity of the ring buffer, use the
  * ringbuf_capacity function.
  */
-size_t
-ringbuf_buffer_capacity(const ringbuf_t *rb);
+size_t ringbuf_buffer_capacity( const ringbuf_t *rb );
 
 /*
  * Deallocate a ring buffer, and, as a side effect, set the pointer to
  * 0.
  */
-void
-ringbuf_free(ringbuf_t *rb);
+void ringbuf_free( ringbuf_t *rb );
 
 /*
  * Reset a ring buffer to its initial state (empty).
  */
-void
-ringbuf_reset(ringbuf_t *rb);
+void ringbuf_reset( ringbuf_t *rb );
 
 /*
  * The usable capacity of the ring buffer, in bytes. Note that this
  * value may be less than the ring buffer's internal buffer size, as
  * returned by ringbuf_buffer_size.
  */
-size_t
-ringbuf_capacity(const ringbuf_t *rb);
+size_t ringbuf_capacity( const ringbuf_t *rb );
 
 /*
  * The number of free/available bytes in the ring buffer. This value
  * is never larger than the ring buffer's usable capacity.
  */
-size_t
-ringbuf_bytes_free(const ringbuf_t *rb);
+size_t ringbuf_bytes_free( const ringbuf_t *rb );
 
 /*
  * The number of bytes currently being used in the ring buffer. This
  * value is never larger than the ring buffer's usable capacity.
  */
-size_t
-ringbuf_bytes_used(const ringbuf_t *rb);
+size_t ringbuf_bytes_used( const ringbuf_t *rb );
 
-int
-ringbuf_is_full(const ringbuf_t *rb);
+int ringbuf_is_full( const ringbuf_t *rb );
 
-int
-ringbuf_is_empty(const ringbuf_t *rb);
+int ringbuf_is_empty( const ringbuf_t *rb );
 
 /*
  * Const access to the head and tail pointers of the ring buffer.
  */
-const void *
-ringbuf_front(const ringbuf_t *rb);
+const void *ringbuf_front( const ringbuf_t *rb );
 
-const void *
-ringbuf_back(const ringbuf_t *rb);
+const void *ringbuf_back( const ringbuf_t *rb );
 
 
 /*
@@ -118,8 +107,7 @@ ringbuf_back(const ringbuf_t *rb);
  * Returns the actual number of bytes written to dst: len, if
  * len < ringbuf_buffer_size(dst), else ringbuf_buffer_size(dst).
  */
-size_t
-ringbuf_memset(ringbuf_t *rb, int c, size_t len);
+size_t ringbuf_memset( ringbuf_t *rb, int c, size_t len );
 
 /*
  * Copy n bytes from a contiguous memory area src into the ring buffer
@@ -135,11 +123,10 @@ ringbuf_memset(ringbuf_t *rb, int c, size_t len);
  * different than it was before the function was called.
  */
 
-void*
-ringbuf_push_back(ringbuf_t* rb, const void* src, size_t count);
+void *ringbuf_push_back( ringbuf_t *rb, const void *src, size_t count );
 
 /*
- * Copy n bytes from the ring buffer src, starting from its front 
+ * Copy n bytes from the ring buffer src, starting from its front
  * pointer, into a contiguous memory area dst. Returns the value of
  * rb's front pointer after the copy is finished.
  *
@@ -153,8 +140,7 @@ ringbuf_push_back(ringbuf_t* rb, const void* src, size_t count);
  * count is greater than the number of bytes used in the ring buffer,
  * no bytes are copied, and the function will return NULL.
  */
-void*
-ringbuf_pop_front(void* out, ringbuf_t* rb, size_t count);
+void *ringbuf_pop_front( void *out, ringbuf_t *rb, size_t count );
 
 /*
  * Copy count bytes from ring buffer src, starting from its tail
@@ -179,10 +165,9 @@ ringbuf_pop_front(void* out, ringbuf_t* rb, size_t count);
  * number of bytes used in src, no bytes are copied, and the function
  * returns 0.
  */
-void *
-ringbuf_copy(ringbuf_t *dst, ringbuf_t *src, size_t count);
+void *ringbuf_copy( ringbuf_t *dst, ringbuf_t *src, size_t count );
 
-// Include the implementation for a "header only" version of the library 
+// Include the implementation for a "header only" version of the library
 #ifdef RINGBUF_IMPLEMENTATION
 #include "ringbuf.c"
 #endif
