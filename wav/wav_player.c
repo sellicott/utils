@@ -69,11 +69,11 @@ int loadHeader(FILE *file, WaveHeaderChunk *hdr){
 		return 1;
 	}
 	//look for RIFF file header
-	//fseek(file, FORMAT, SEEK_SET);
+	fseek(file, CHUNK_ID, SEEK_SET);
 	fgets(chunk_id, 5, file);
 	if(strncmp(chunk_id, "RIFF", 4)!=0){
 		printf("File is not a wav file\n");
-		return 1;		
+		return 1;
 	}
 	
 	//check if WAVE file
