@@ -4,7 +4,7 @@
 #include <math.h>
 #include "wav_player.h"
 
-#define BUFF_SIZE 2048
+#define BUFF_SIZE 2048 
 // If using the shared library, don't define CNFA_IMPLEMENTATION 
 // (it's already in the library).
 #ifndef USE_SHARED
@@ -14,33 +14,57 @@
 
 #define RUNTIME 5000
 
-double omega = 0;
 int totalframesr = 0;
 int totalframesp = 0;
-int16_t buff[BUFF_SIZE];
 
 FILE* wav_file;
 WaveHeaderChunk hdr;
 struct CNFADriver * cnfa;
+short buff[BUFF_SIZE];
 
 int is_done;
 
 void Callback( struct CNFADriver * sd, short * out, short * in, int framesp, int framesr )
 {
 	int* is_done_ptr = (int*) sd->opaque;
-	int sample_buff_sz = framesp * sd->channelsPlay;
+	const int output_channels = sd->channelsPlay;
+	const int file_channels = hdr.fmt.num_channels;
+	const int output_buff_sz = framesp * output_channels;
+	int br = 0;
 
 	// if we have already ended the file, then clear the buffer and exit function
 	if(*is_done_ptr) {
-		memset(out, 0, sample_buff_sz);
+		memset(out, 0, sizeof(short) * output_buff_sz);
 		return;
 	}
 
 	totalframesr += framesr;
 	totalframesp += framesp;
 
+	if (output_channels == file_channels) {
+		int read_buff_sz = framesp * sd->channelsPlay;
+		br = readData(wav_file, &hdr, out, read_buff_sz);
+	}
+	else if (output_channels > file_channels) {
+		int read_buff_sz = framesp;
 
-	int br = readData(wav_file, &hdr, out, sample_buff_sz);
+		// exit loop if we are done filling the output buffer or we are at the end of file
+		int samples_remaining = read_buff_sz;
+		while (samples_remaining > 0 && br >= 0) {
+			int read_sz = (samples_remaining > BUFF_SIZE) ? BUFF_SIZE : samples_remaining;
+			br = readData(wav_file, &hdr, buff, read_sz);
+			// duplicate data on left and right channels
+			for (int i = 0; i < read_buff_sz; ++i){
+				out[2*i]   = buff[i];
+				out[2*i+1] = buff[i];
+			}
+			samples_remaining -= br;
+		}
+		
+	}
+	else {
+		printf("what are you doing? mono sound output?\n");
+	}
 
 	// end of file
 	if (br < 0) {
@@ -49,33 +73,32 @@ void Callback( struct CNFADriver * sd, short * out, short * in, int framesp, int
 	}
 }
 
-int main (void) {
+int main (int nargs, char** args) {
 	//const char* filename = "no8_aleg.wav";
-	const char* filename = "min&trio.wav";
+	char* filename = "min&trio.wav";
 
+	// if there is a file given on the command line play it.
+	if(nargs >= 2) {
+		filename = args[1];
+	}
 	wav_file = fopen(filename, "r");
 
 	printInfo(wav_file);
 	printf("\n\n");
 
-	fclose(wav_file);
-	wav_file = fopen(filename, "r");
-
 	printf("loading file\n");
 	loadHeader(wav_file, &hdr);
 
 	printf("playing file\n");
-	int br = 0;
 
 	is_done = 0;
-
 	cnfa = CNFAInit( 
 
 		"PULSE",//You can select a plaback driver, or use 0 for default.
 		//0, //default
 		"cnfa_example", Callback, 
-		44100, //Requested samplerate for playback
-		44100, //Requested samplerate for record
+		hdr.fmt.sample_rate, //Requested samplerate for playback
+		hdr.fmt.sample_rate, //Requested samplerate for record
 		2, //Number of playback channels.
 		2, //Number of record channels.
 		1024, //Buffer size in frames.
@@ -89,6 +112,7 @@ int main (void) {
 	}
 
 	CNFAClose(cnfa);
+	fclose(wav_file);
 
 	printf( "Received %d (%d per sec) frames\nSent %d (%d per sec) frames\n", totalframesr, totalframesr/RUNTIME, totalframesp, totalframesp/RUNTIME );
 
