@@ -12,8 +12,6 @@
 #endif
 #include "CNFA/CNFA.h"
 
-#define RUNTIME 5000
-
 int totalframesr = 0;
 int totalframesp = 0;
 
@@ -93,28 +91,39 @@ int main (int nargs, char** args) {
 
 	is_done = 0;
 	cnfa = CNFAInit( 
+		NULL,                // String, for the driver "PULSE", "WASAPI" (output only) - NULL means default. 
+		"cnfa_example",      // Name of program to audio driver
+		Callback,            // CNFA callback function handle
+		hdr.fmt.sample_rate, // Requested samplerate for playback
+		hdr.fmt.sample_rate, // Requested samplerate for record
+		2,                   // Number of playback channels.
+		2,                   // Number of record channels.
+		1024,                // Buffer size in frames.
+		NULL,                // String, for the selected input device - NULL means default.
+		NULL,                // String, for the selected output device - NULL means default.
+		&is_done             // pass an integer as an "opaque" object so that CNFA can close
+	);
 
-		"PULSE",//You can select a plaback driver, or use 0 for default.
-		//0, //default
-		"cnfa_example", Callback, 
-		hdr.fmt.sample_rate, //Requested samplerate for playback
-		hdr.fmt.sample_rate, //Requested samplerate for record
-		2, //Number of playback channels.
-		2, //Number of record channels.
-		1024, //Buffer size in frames.
-		0, //Could be a string, for the selected input device - but 0 means default.
-		0,  //Could be a string, for the selected output device - but 0 means default.
-		&is_done // pass an integer as an "opaque" object so that CNFA can close
-	 );
-
+	int runtime = 0;
+	const char* spin_glyph = "-\\|/";
+	const char* glyph = spin_glyph;
+	int i = 0;
 	while (!is_done){
 		sleep(1);
+		++runtime;
+		printf("\r %c ", *glyph++);
+		fflush(stdout);
+		if (!*glyph) {
+			glyph = spin_glyph;
+		}
 	}
 
 	CNFAClose(cnfa);
 	fclose(wav_file);
 
-	printf( "Received %d (%d per sec) frames\nSent %d (%d per sec) frames\n", totalframesr, totalframesr/RUNTIME, totalframesp, totalframesp/RUNTIME );
+	printf( "Received %d (%d per sec) frames\nSent %d (%d per sec) frames\n",
+		totalframesr, totalframesr/runtime,   // recorded samples, recorded samples/sec
+		totalframesp, totalframesp/runtime ); // outputted samples, outputted samples/sec
 
     return 0;
 }

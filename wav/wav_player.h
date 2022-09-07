@@ -10,6 +10,7 @@
 int loadHeader(FILE *file, WaveHeaderChunk *hdr);
 int loadInfo(FILE *file, WaveHeaderChunk *hdr);
 int printInfo(FILE *file);
+void freeInfo(WaveHeaderChunk *hdr);
 int readData(FILE *file, WaveHeaderChunk *hdr, void* buff, int buff_len);
 
 #endif
